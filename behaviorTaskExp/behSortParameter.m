@@ -1,52 +1,63 @@
-function [positionsAndTimes, paramSorted] = behSortParameter(block, parameters, bFrameTimes, vFrameTimes, stimOn, type)
-% 2 channel version. sort grating timing by corresponding azimuth location.
-% full contrast ver
+function [positionsAndTimes, paramSorted] = behSortParameter(beh_all, block, parameters, bFrameTimes, vFrameTimes, stimOn, type)
+% 2 channel version. sort grating timing by corresponding azimuth location and contarasts.
+% integrated version w behavioral data
 % created by EK Feb23 
 
 switch type 
+    
     case 'whole'
         positionsAndTimes = zeros(length(block.trial),3);
 
         for i = 1:length(block.trial)
             positionsAndTimes(i,1) = block.trial(1,i).condition.targetAzimuth;
             positionsAndTimes(i,2) = block.trial(1,i).gratingStartedTime;
-            positionsAndTimes(i,3) = block.trial(1,i).condition.trialContrast; % reduces [r,g,b] to r but for black and white that's enough
+            positionsAndTimes(i,3) = block.trial(1,i).condition.trialContrast; 
         end
     case 'hit'
-        
-        [~, totalTrials, out, beh_all, activeOut] = attention_effects_EK('M230220_1', '2023-05-07', {'4'});
-        close all
+     
         idx = find(beh_all.hits_idx==1);
         positionsAndTimes = zeros(length(idx),3);
 
         for i = 1:length(idx)
             positionsAndTimes(i,1) = block.trial(1,idx(i)).condition.targetAzimuth;
             positionsAndTimes(i,2) = block.trial(1,idx(i)).gratingStartedTime;
-            positionsAndTimes(i,3) = block.trial(1,idx(i)).condition.trialContrast; % reduces [r,g,b] to r but for black and white that's enough
+            positionsAndTimes(i,3) = block.trial(1,idx(i)).condition.trialContrast; 
         end
     case 'miss'
-          [~, totalTrials, out, beh_all, activeOut] = attention_effects_EK('M230220_1', '2023-05-07', {'4'});
-        close all
-        for i = 1:length(block.trial)
-            positionsAndTimes(i,1) = block.trial(1,i).condition.targetAzimuth;
-            positionsAndTimes(i,2) = block.trial(1,i).gratingStartedTime;
-            positionsAndTimes(i,3) = block.trial(1,i).condition.trialContrast; % reduces [r,g,b] to r but for black and white that's enough
+           idx = find(beh_all.no_licks_idx==1);
+        positionsAndTimes = zeros(length(idx),3);
+
+        for i = 1:length(idx)
+            positionsAndTimes(i,1) = block.trial(1,idx(i)).condition.targetAzimuth;
+            positionsAndTimes(i,2) = block.trial(1,idx(i)).gratingStartedTime;
+            positionsAndTimes(i,3) = block.trial(1,idx(i)).condition.trialContrast;
         end
     case 'FA'
-          [~, totalTrials, out, beh_all, activeOut] = attention_effects_EK('M230220_1', '2023-05-07', {'4'});
-        close all
-        for i = 1:length(block.trial)
-            positionsAndTimes(i,1) = block.trial(1,i).condition.targetAzimuth;
-            positionsAndTimes(i,2) = block.trial(1,i).gratingStartedTime;
-            positionsAndTimes(i,3) = block.trial(1,i).condition.trialContrast; % reduces [r,g,b] to r but for black and white that's enough
+        idx = find(beh_all.falseAlarms_idx==1);
+        positionsAndTimes = zeros(length(idx),3);
+
+        for i = 1:length(idx)
+            positionsAndTimes(i,1) = block.trial(1,idx(i)).condition.targetAzimuth;
+            positionsAndTimes(i,2) = block.trial(1,idx(i)).gratingStartedTime;
+            positionsAndTimes(i,3) = block.trial(1,idx(i)).condition.trialContrast; 
         end
     case 'CR'
-          [~, totalTrials, out, beh_all, activeOut] = attention_effects_EK('M230220_1', '2023-05-07', {'4'});
-        close all
-        for i = 1:length(block.trial)
-            positionsAndTimes(i,1) = block.trial(1,i).condition.targetAzimuth;
-            positionsAndTimes(i,2) = block.trial(1,i).gratingStartedTime;
-            positionsAndTimes(i,3) = block.trial(1,i).condition.trialContrast; % reduces [r,g,b] to r but for black and white that's enough
+        idx = find(beh_all.falseAlarms_rej_idx==1);
+        positionsAndTimes = zeros(length(idx),3);
+
+        for i = 1:length(idx)
+            positionsAndTimes(i,1) = block.trial(1,idx(i)).condition.targetAzimuth;
+            positionsAndTimes(i,2) = block.trial(1,idx(i)).gratingStartedTime;
+            positionsAndTimes(i,3) = block.trial(1,idx(i)).condition.trialContrast; 
+        end
+    case 'Late'
+        idx = find(beh_all.late_misses_idx==1);
+        positionsAndTimes = zeros(length(idx),3);
+        
+        for i = 1:length(idx)
+            positionsAndTimes(i,1) = block.trial(1,idx(i)).condition.targetAzimuth;
+            positionsAndTimes(i,2) = block.trial(1,idx(i)).gratingStartedTime;
+            positionsAndTimes(i,3) = block.trial(1,idx(i)).condition.trialContrast; 
         end
 end 
 

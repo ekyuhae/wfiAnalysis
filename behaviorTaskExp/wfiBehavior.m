@@ -1,26 +1,36 @@
+%% WFI Behavior Experiment Pipeline 
+% ensure the barmapping analysis has been done beforehand so that you can
+% choose ROI based on the barmapping spatial data acquired from the same
+% day of behavioral experiment 
+% EK May23
+
 clc; clear; close all
 
 addpath(genpath("Y:\haider\Code\behaviorAnalysis"));
 addpath(genpath('Y:\haider\Data\analyzedData\EKK\WFI\Codes\Analysis_EK'))
 
 Animal = 'M230220_1';
-expID = '07-May-2023';
-expID_ret = '04-Apr-2023_1'; % for retinotopy registration get the patch 
-sessNr = 1;  
+expID = '15-May-2023'; % this is WFI experiment ID format
+expID_ret = '04-Apr-2023_1'; % for retinotopy registration and identifying the visual areas 
+% expID_ret = '16-Mar-2023';
+sessNr = 5; % enter the imaging session number(X) from Frames_2_xxx_xxx_uint16_000X 
 cPath = [Animal filesep 'behavior' filesep expID filesep num2str(sessNr)];
 savePath = (['Y:\haider\Data\analyzedData\EKK\WFI\' cPath]); % enter path to saving the analyzed data
 load(['Y:\haider\Data\analyzedData\EKK\WFI\' cPath filesep 'preprocessed_WFIdata_' num2str(sessNr, '%04i') '.mat'])
 
-expInfoNr = '4';
-date = '2023-05-07';
+% expInfo data
+expInfoNr = '7'; % enter the corresponding expInfo session number (does not always match with WFI sessNr) 
+date = '2023-05-15'; 
 expPath = ['Y:\haider\Data\Behavior\expInfo\' Animal filesep date filesep expInfoNr];        
 sessID = [date '_' expInfoNr '_' Animal];
 
 load ([expPath filesep sessID '_Timeline.mat']);
 load ([expPath filesep sessID '_Block.mat']);
 load ([expPath filesep sessID '_parameters.mat']);
-multiCont = true; % true for multi contrast barmapping analysis 
 pupilAnalysis = false; % true for aligning puil trace to image data
+fwindow = 6; % response window for taking avg spatial map
+[~, totalTrials, ~, beh_all, activeOut] = attention_effects_EK(Animal, date, {expInfoNr});
+close all
 
 %% make sure the photodiode onset is correct
 % comment this if you preprocess your image data with wfiProcessImage
@@ -77,20 +87,31 @@ if pupilAnalysis
 end 
 clear allData1
 
-%% process behavior data
-
 %% for whole trials; get spatio temporal activity and save the analyzed data 
 % get average response map, average response trace over contrast,
 % individual traces as well
-fwindow = 6;
-[~, paramSorted] = behSortParameter(block, parameters, bFrameTimes, vFrameTimes, stimOn_fixed, 'whole');
+
+[~, paramSorted] = behSortParameter([],block, parameters, bFrameTimes, vFrameTimes, stimOn_fixed, 'whole');
 [~, ~, binocOnFrame, monocOnFrame] = behSpatioTempResp(paramSorted, allData, bFrameTimes, savePath, fwindow, img,sessNr, expID_ret);
 
 %% find frames for hit/misses/FA/CR trials and do the same spatiotemporal analysis
 
-[posntime, paramSorted_hit] = behSortParameter(block, parameters, bFrameTimes, vFrameTimes, stimOn_fixed, 'hit');
 
-% do analysis on frames corresponding to hit trials only
-[~, ~, bFrameH, mFrameH] = behSpatioTempResp_event(paramSorted, allData, bFrameTimes, savePath, fwindow, img, 'hit');
+[posntime.H, paramSorted_event.H] = behSortParameter(beh_all, block, parameters, bFrameTimes, vFrameTimes, stimOn_fixed, 'hit');
+[posntime.M, paramSorted_event.M] = behSortParameter(beh_all, block, parameters, bFrameTimes, vFrameTimes, stimOn_fixed, 'miss');
+[posntime.FA, paramSorted_event.FA] = behSortParameter(beh_all, block, parameters, bFrameTimes, vFrameTimes, stimOn_fixed, 'FA'); % CR and FA should have frames at 0% contrast
+[posntime.CR, paramSorted_event.CR] = behSortParameter(beh_all, block, parameters, bFrameTimes, vFrameTimes, stimOn_fixed, 'CR');
+[posntime.LL, paramSorted_event.LL] = behSortParameter(beh_all, block, parameters, bFrameTimes, vFrameTimes, stimOn_fixed, 'Late');
+
+[~, ~, bFrame.H, mFrame.H] = behSpatioTempResp_event(paramSorted_event.H, allData, bFrameTimes, savePath, fwindow, img, 'hit');
+[~, ~, bFrame.M, mFrame.M] = behSpatioTempResp_event(paramSorted_event.M, allData, bFrameTimes, savePath, fwindow, img, 'miss');
+[~, ~, bFrame.FA, mFrame.FA] = behSpatioTempResp_event(paramSorted_event.FA, allData, bFrameTimes, savePath, fwindow, img, 'FA');
+[~, ~, bFrame.CR, mFrame.CR] = behSpatioTempResp_event(paramSorted_event.CR, allData, bFrameTimes, savePath, fwindow, img, 'CR');
+[~, ~, bFrame.LL, mFrame.LL] = behSpatioTempResp_event(paramSorted_event.LL, allData, bFrameTimes, savePath, fwindow, img, 'Late');
 
 % compareMovie(allData)
+%% Reaction Time frame analysis with different contrast levels
+% align frames to reaction time onset for each hit trial and compare responses
+% to different contrast
+
+[posntime.H, paramSorted_event.H] = behSortParameter(beh_all, block, parameters, bFrameTimes, vFrameTimes, stimOn_fixed, 'hit');
