@@ -114,4 +114,3 @@ clear allData1
 % align frames to reaction time onset for each hit trial and compare responses
 % to different contrast
 
-[posntime.H, paramSorted_event.H] = behSortParameter(beh_all, block, parameters, bFrameTimes, vFrameTimes, stimOn_fixed, 'hit');
