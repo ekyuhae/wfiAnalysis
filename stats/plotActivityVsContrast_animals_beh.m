@@ -10,11 +10,9 @@ fPath = 'Y:\haider\Data\analyzedData\EKK\WFI\';
 Animal = {'M230220_1', 'M230209_1'};
 % expID = {'03-Feb-2023', '08-Feb-2023_2','18-Feb-2023', '09-Mar-2023'};
 expID = {'09-May-2023', '11-May-2023', '12-May-2023_1'};
-gratings = 2; % false if barmapping
-if gratings == 2 
     type = 'hit';
     hva = 'LM_PM';
-end 
+
 % cont = [100 75 50 25 5 0]; % barmapping contrast (shortcut)
 % cont = [0,0.02,0.05,0.1,0.33,0.5,0.65,0.8,1]*100; % grating cont
 %%
@@ -34,14 +32,6 @@ if isempty(hva)
 else 
     load([dir filesep data(m).expID{end} filesep 'compiled analyzed data_' hva '.mat']); % load last animal's session compiled data 
 end 
-% for exp = 1: size(analyzed_comp,1) % find each experiment's number of contrasts
-%     if gratings 
-%         cont(exp) = length(analyzed_comp(exp,1).contrasts);
-%     else 
-%         cont(exp) = length(analyzed_comp(exp,1).cont1);
-%     end
-% end 
-% nrContrasts = max(cont);
 
 %%
 nrContrasts = length(data(1).idxb);
