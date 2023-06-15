@@ -1,7 +1,10 @@
-function plotTempTrace_beh(avgTempTrace, contrasts, fr, type)
+function plotTempTrace_beh(avgTempTrace, contrasts, fr, type, hva)
 % plot mean temporal trace across the trials within particular roi
 % applied to grating stimulus exp 
 % EK 23 
+% NA 6/2/2023 - added hva input/change to subplot titling
+
+%Used in: [1] behSpatioTempResp.m, [2] behSpatioTempResp_event.m
 
 %%
 idx = find(contrasts == 0, 1, 'last');
@@ -26,7 +29,11 @@ for i = 1:length(bcont)
 
 end
 xline(t(fr*2+1), ':k') ;
-title(['binoc ROI trace - ' type ' trials']);
+if isempty(hva)
+    title(['binoc ROI trace - ' type ' trials']);
+else
+    title([hva(1:2) ' ROI trace - ' type ' trials'])
+end
 xlabel('time (s)'); ylabel('dF/F_0')
 legend(legend_names); legend('boxoff'); axis square
 % if avgTempTrace.binoc ~= 0
@@ -47,7 +54,11 @@ for i = 1:length(mcont)
 
 end
 xline(t(fr*2+1), ':k');
-title(['monoc ROI trace - ' type ' trials']);
+if isempty(hva)
+    title(['monoc ROI trace - ' type ' trials']);
+else
+    title([hva(4:5) ' ROI trace - ' type ' trials'])
+end
 xlabel('time (s)'); ylabel('dF/F_0')
 legend(legend_names);  legend('boxoff'); axis square
 % if avgTempTrace.monoc ~= 0

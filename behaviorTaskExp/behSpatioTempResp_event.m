@@ -1,8 +1,9 @@
-function [avgStimResponse, avgTempTrace, binocOn, monocOn] = behSpatioTempResp_event(paramSorted, allData, bFrameTimes, sPath, fwindow,img, type)
+function [avgStimResponse, avgTempTrace, binocOn, monocOn] = behSpatioTempResp_event(paramSorted, allData, bFrameTimes, sPath, fwindow,img, type, hva, reactionTriggered)
 % get temporal trace and spatial activity map from the imaging during spatial detection
 % task experiment.
 % modified version of passive grating analysis (barmapFullcont_gratings) 
 % EK Feb23
+% NA 6/1/2023 - added hva as last input
 %% 
 
 for i = 1:length(paramSorted)
@@ -57,33 +58,67 @@ for cont = 1:length(bcont)
         mtraceLength= length(monocTemp) / length(monocOn{cont});
         %% temporal analysis - requires alignment coordinates and ROI pixels 
         if cont ==1
-            cfile =[sPath(1:end-1) filesep num2str(1) filesep 'analyzed_active_1.mat'];
+            if isempty(hva)
+                if ~reactionTriggered
+                    cfile =[sPath '\..' filesep num2str(1) filesep 'analyzed_active_1.mat'];
+                else 
+                    cfile =[sPath '\..\..' filesep num2str(1) filesep 'analyzed_active_1.mat'];
+                end 
+            else
+                cfile = [sPath '\..\..'  filesep num2str(1) filesep hva filesep 'analyzed_active_1_' hva '.mat'];
+            end
             if exist(cfile)
                 load(cfile,'roi', 'cord')
                 disp('roi data has been loaded')
             end
         end
+        if ~isempty(hva)
+            sPath= fullfile(sPath, '..');
+        end 
         if ~isempty(binocTemp)
-            [avgTempTrace.binoc(cont,:),~] = getAvgTemporalResponse(binocTemp, btraceLength, allData, roi.binoc,cord, sPath); %AR Changed
-            indivTempTrace.binoc{cont} = getIndividTrace(binocTemp,btraceLength, allData, roi.binoc, cord, sPath);
+%             [avgTempTrace.binoc(cont,:),~] = getAvgTemporalResponse(binocTemp, btraceLength, allData, roi.binoc,cord, sPath); %AR Changed
+            indivTempTrace.binoc{cont} = getIndividTrace(binocTemp,btraceLength, allData, roi.binoc, cord, sPath, flag);
+            avgTempTrace.binoc(cont,:) = mean(indivTempTrace.binoc{cont},1);
         end
         if ~isempty(monocTemp)
-            [avgTempTrace.monoc(cont,:),~] = getAvgTemporalResponse(monocTemp, mtraceLength, allData, roi.monoc,cord, sPath); %AR Changed
-            indivTempTrace.monoc{cont} = getIndividTrace(monocTemp,mtraceLength, allData, roi.monoc, cord, sPath);
+%             [avgTempTrace.monoc(cont,:),~] = getAvgTemporalResponse(monocTemp, mtraceLength, allData, roi.monoc,cord, sPath); %AR Changed
+            indivTempTrace.monoc{cont} = getIndividTrace(monocTemp,mtraceLength, allData, roi.monoc, cord, sPath, flag);
+            avgTempTrace.monoc(cont,:) = mean(indivTempTrace.monoc{cont},1);
         end
         binocFrames = [];
         binocTemp = [];
         monocFrames = [];
         monocTemp = [];
+        if ~isempty(hva)
+            sPath = sPath(1:end-2);
+        end 
 end 
 
 cd(sPath)
 
-plotAvgMap_beh(contrasts, avgStimResponse,cord, sPath, type) % contrast range for binoc and monoc is different 5/11 fix ity
-plotTempTrace_beh(avgTempTrace, contrasts, fr, type) 
+%if isempty (hva)
+plotAvgMap_beh(contrasts, avgStimResponse,cord, sPath, type, hva, reactionTriggered) % contrast range for binoc and monoc is different 5/11 fix ity
+% else 
+%    plotAvgMap_beh(contrasts, avgStimResponse,cord, fullfile(sPath, '..'), type, hva, reactionTriggered) % contrast range for binoc and monoc is different 5/11 fix ity 
+% end 
 
-save(['analyzed_active_' num2str(sPath(end), '%04i') '_' type], 'avgStimResponse', 'avgTempTrace', 'indivTempTrace', 'roi', 'contrasts', 'paramSorted', 'cord')
+plotTempTrace_beh(avgTempTrace, contrasts, fr, type, hva) 
 
+if isempty(hva)
+    if ~reactionTriggered
+        save(['analyzed_active_' num2str(sPath(end), '%04i') '_' type], 'avgStimResponse', 'avgTempTrace', 'indivTempTrace', 'roi', 'contrasts', 'paramSorted', 'cord')
+    else
+        save(['analyzed_active_' num2str(sPath(end-6), '%04i') '_' type], 'avgStimResponse', 'avgTempTrace', 'indivTempTrace', 'roi', 'contrasts', 'paramSorted', 'cord')
+    end
+else
+    if ~reactionTriggered
+        sessDir = fileparts(pwd);
+        save(['analyzed_active_' num2str(sessDir(end)) '_' hva '_' type], 'avgStimResponse', 'avgTempTrace', 'indivTempTrace', 'roi', 'contrasts', 'paramSorted', 'cord')
+    else
+        sessDir = fileparts(pwd);
+        save(['analyzed_active_' num2str(sessDir(end-6)) '_' hva '_' type], 'avgStimResponse', 'avgTempTrace', 'indivTempTrace', 'roi', 'contrasts', 'paramSorted', 'cord')
+    end
+end
 
 %% 
 end

@@ -7,60 +7,51 @@ switch type
     
     case 'whole'
         positionsAndTimes = zeros(length(block.trial),3);
-
+        
         for i = 1:length(block.trial)
-            positionsAndTimes(i,1) = block.trial(1,i).condition.targetAzimuth;
-            positionsAndTimes(i,2) = block.trial(1,i).gratingStartedTime;
-            positionsAndTimes(i,3) = block.trial(1,i).condition.trialContrast; 
+          
+            if ~isempty(block.trial(1,i).gratingStartedTime) % if the last trial is aborted
+                positionsAndTimes(i,1) = block.trial(1,i).condition.targetAzimuth;
+                positionsAndTimes(i,2) = block.trial(1,i).gratingStartedTime;
+                positionsAndTimes(i,3) = block.trial(1,i).condition.trialContrast;
+            else
+                positionsAndTimes(i,:) = [];
+            end
         end
-    case 'hit'
-     
+        
+    case 'hit'        
         idx = find(beh_all.hits_idx==1);
         positionsAndTimes = zeros(length(idx),3);
-
-        for i = 1:length(idx)
-            positionsAndTimes(i,1) = block.trial(1,idx(i)).condition.targetAzimuth;
-            positionsAndTimes(i,2) = block.trial(1,idx(i)).gratingStartedTime;
-            positionsAndTimes(i,3) = block.trial(1,idx(i)).condition.trialContrast; 
-        end
+       
     case 'miss'
-           idx = find(beh_all.no_licks_idx==1);
+        idx = find(beh_all.no_licks_idx==1);
         positionsAndTimes = zeros(length(idx),3);
-
-        for i = 1:length(idx)
-            positionsAndTimes(i,1) = block.trial(1,idx(i)).condition.targetAzimuth;
-            positionsAndTimes(i,2) = block.trial(1,idx(i)).gratingStartedTime;
-            positionsAndTimes(i,3) = block.trial(1,idx(i)).condition.trialContrast;
-        end
+        
     case 'FA'
         idx = find(beh_all.falseAlarms_idx==1);
         positionsAndTimes = zeros(length(idx),3);
-
-        for i = 1:length(idx)
-            positionsAndTimes(i,1) = block.trial(1,idx(i)).condition.targetAzimuth;
-            positionsAndTimes(i,2) = block.trial(1,idx(i)).gratingStartedTime;
-            positionsAndTimes(i,3) = block.trial(1,idx(i)).condition.trialContrast; 
-        end
+        
     case 'CR'
         idx = find(beh_all.falseAlarms_rej_idx==1);
         positionsAndTimes = zeros(length(idx),3);
-
-        for i = 1:length(idx)
-            positionsAndTimes(i,1) = block.trial(1,idx(i)).condition.targetAzimuth;
-            positionsAndTimes(i,2) = block.trial(1,idx(i)).gratingStartedTime;
-            positionsAndTimes(i,3) = block.trial(1,idx(i)).condition.trialContrast; 
-        end
+        
     case 'Late'
         idx = find(beh_all.late_misses_idx==1);
-        positionsAndTimes = zeros(length(idx),3);
-        
-        for i = 1:length(idx)
-            positionsAndTimes(i,1) = block.trial(1,idx(i)).condition.targetAzimuth;
-            positionsAndTimes(i,2) = block.trial(1,idx(i)).gratingStartedTime;
-            positionsAndTimes(i,3) = block.trial(1,idx(i)).condition.trialContrast; 
-        end
-end 
+        positionsAndTimes = zeros(length(idx),3);       
+end
 
+if ~strcmp(type, 'whole')
+     for i = 1:length(idx)
+           
+            if ~isempty(block.trial(1,idx(i)).gratingStartedTime)
+                positionsAndTimes(i,1) = block.trial(1,idx(i)).condition.targetAzimuth;
+                positionsAndTimes(i,2) = block.trial(1,idx(i)).gratingStartedTime;
+                positionsAndTimes(i,3) = block.trial(1,idx(i)).condition.trialContrast;
+            else
+                positionsAndTimes(i,:) = [];
+            end
+     end
+end 
 
 if bFrameTimes (1) < vFrameTimes (1) % aligning stimulus start time to frame start time (ms)
     positionsAndTimes(:,2) = (positionsAndTimes(:,2)+stimOn)*1e3 + bFrameTimes(1);
